@@ -13,7 +13,7 @@ gcc -I utilities/ -c server/main.c -o server/main.o
 echo "Compiling server done"
 
 echo "linking server..."
-gcc -o server/build/server server/main.o -Lutilities/build -lcutil
+gcc -o server/build/server server/main.o -Lutilities/build -lcutil -lpthread
 echo "linking server done"
 
 echo "-----Step 3---------------"
