@@ -13,17 +13,19 @@ int sock_fd, sock_server_fd;
 char client_message[200] = {0};
 char message[100] = {0};
 char name[50];
+char sock_str[25];
 void handle_sigint(int sig);
 void render_menu();
 void receive_mode();
+
 int main()
 {
 
     struct sockaddr_in remote = {0};
-
-    signal(SIGINT, handle_sigint);
+    printf("*******************PROCESS(%d)*****************\n", getpid());
     printf("Enter your name: ");
     fgets(name, 20, stdin);
+    signal(SIGINT, handle_sigint);
     write_console_log("Creating socket...", 0);
     sock_fd = create_socket();
     write_console_log("Socket creation done", 0);
@@ -36,22 +38,40 @@ int main()
     memset(client_message, '\0', sizeof client_message);
     memset(message, '\0', sizeof message);
     // send name to server
-
-    strcat(name, "init\nfrom\nto\n");
-    if (send(sock_fd, name, strlen(name), 0) < 0)
+    sprintf(sock_str, "%d", sock_fd);
+    strcpy(message, "init#");
+    strcat(message, sock_str);
+    strcat(message, "#to#");
+    // strcpy(message, "init#from#to#");
+    strcat(message, name);
+    printf("Message to send: %s\n", message);
+    if (send(sock_fd, message, strlen(message), 0) < 0)
     {
         write_console_log("failed to send message", 0);
         return 1;
     }
-    receive_mode();
-    close(sock_fd);
-    sleep(1);
+    do
+    {
+
+        memset(client_message, '\0', sizeof client_message);
+        memset(message, '\0', sizeof message);
+        if (recv(sock_fd, client_message, 200, 0) < 0)
+        {
+            write_console_log("failed to receive message ok", 0);
+            return 1;
+        }
+        printf("client msg: %s", client_message);
+
+    } while (strcmp(client_message, "bye\n") != 0);
+    //  close(sock_fd);
+    //  sleep(1);
     return 0;
 }
 
 void render_menu()
 {
     system("clear");
+    // signal(SIGINT, handle_sigint);
     char message[100];
     int choice = 0;
     do
@@ -70,18 +90,29 @@ void render_menu()
             exit(EXIT_SUCCESS);
             break;
         case 2:
+
             memset(message, '\0', 100);
+
             printf("Enter message to send: ");
+
             fgets(message, 100, stdin);
-            memset(message, '\0', 100);
-            fgets(message, 100, stdin);
-            strcat(message, "sendto\n");
-            if (send(sock_fd, message, strlen(message), 0) < 0)
+            while ((getchar()) != '\n')
+                ;
+            char msgptr[100];
+            strcpy(msgptr, "sendto#from#to#");
+            strcat(msgptr, message);
+            printf("Message to send: %s\n", msgptr);
+            if (send(sock_fd, msgptr, strlen(msgptr), 0) < 0)
             {
                 write_console_log("failed to send message", 0);
                 return;
             }
 
+            // receive_mode();
+            //  choice = 0;
+            break;
+        case 3:
+            // signal(SIGINT, handle_sigint);
             receive_mode();
             break;
         default:
@@ -92,24 +123,14 @@ void render_menu()
 
 void handle_sigint(int sig)
 {
-    char *msg;
+    // printf("Signal handled and re added");
+    if (sig == SIGINT)
+        signal(SIGINT, handle_sigint);
     render_menu();
-    signal(SIGINT, handle_sigint);
 }
 
 void receive_mode()
 {
+    system("clean");
     printf("\n***Message receive mode***\n");
-    do
-    {
-
-        memset(client_message, '\0', sizeof client_message);
-        // memset(message, '\0', sizeof message);
-        if (recv(sock_fd, client_message, 200, 0) < 0)
-        {
-            write_console_log("failed to receive message ok", 0);
-            return;
-        }
-
-    } while (strcmp(message, "bye\n") != 0);
 }

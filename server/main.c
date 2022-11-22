@@ -19,7 +19,31 @@ int thread_count = 0;
 pthread_t threads[200];
 void handle_command(struct Message msg)
 {
-    write_console_log("message to handle ", 2, msg.command, msg.message);
+    if (strcmp(msg.command, "INIT") == 0)
+    {
+
+        strcpy(clients[client_counts].name, msg.message);
+        // clients[client_counts].sockid =
+    }
+    else if (strcmp(msg.command, "SNTO") == 0)
+    {
+    }
+    else if (strcmp(msg.command, "RCFM") == 0)
+    {
+    }
+    else if (strcmp(msg.command, "RQLS") == 0)
+    {
+    }
+    else if (strcmp(msg.command, "RACK") == 0)
+    {
+    }
+    else if (strcmp(msg.command, "SYST") == 0)
+    {
+    }
+    else
+    {
+        write_console_log("Invalid command: ", 1, msg.command);
+    }
 }
 void *handle_client(void *client_sock)
 {
@@ -35,36 +59,34 @@ void *handle_client(void *client_sock)
             write_console_log("failed to receive message", 0);
             return NULL;
         }
-
         if (strcmp(client_message, "") != 0)
         {
-            const char s[2] = "\n";
+            const char s[2] = "#";
             char *token = strtok(client_message, s);
             short c = 0;
-            struct Message msg;
-            // while (token != NULL)
-            // {
-            //     if (c == 0)
-            //     {
-            //         strcpy(msg.command, token);
-            //     }
-            //     else if (c == 1)
-            //     {
-            //         strcpy(msg.from, token);
-            //     }
-            //     else if (c == 2)
-            //     {
-            //         strcpy(msg.to, token);
-            //     }
-            //     else if (c == 3)
-            //     {
-            //         strcpy(msg.message, token);
-            //     }
-            //     token = strtok(NULL, s);
-            // }
-            printf("\nclient_message   %s\n", client_message);
-            // write_console_log("Command received from client: ", 2, client_message);
-            //  handle_command(msg);
+            struct Message msg = {0};
+            while (token != NULL)
+            {
+                if (c == 0)
+                {
+                    strcpy(msg.command, token);
+                }
+                else if (c == 1)
+                {
+                    strcpy(msg.from, token);
+                }
+                else if (c == 2)
+                {
+                    strcpy(msg.to, token);
+                }
+                else if (c == 3)
+                {
+                    strcpy(msg.message, token);
+                }
+                c++;
+                token = strtok(NULL, s);
+            }
+            handle_command(msg);
         }
     } while (strcmp(message, "bye\n") != 0 && strcmp(client_message, "") != 0);
 
@@ -82,7 +104,8 @@ int main(int argc, char **argv)
     short sock;
     char client_message[200] = {0};
     char message[100] = {0};
-    write_console_log("Starting the server....", 0);
+
+    write_console_log("Starting the server with process id....", 0);
     signal(SIGINT, exit_control);
     write_console_log("Creating socket...", 0);
     sock_fd = create_socket();

@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 
-#define PORT_NO 12345 // server port number
+#define PORT_NO 12350 // server port number
 
 // Clients structure
 struct Client
@@ -17,10 +17,10 @@ struct Client
 // Message structure
 struct Message
 {
-    char *command;
-    char *from;
-    char *to;
-    char *message;
+    char command[20];
+    char from[20];
+    char to[20];
+    char message[100];
 };
 
 // Write to console with timestamp
