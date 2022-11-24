@@ -17,22 +17,69 @@ int client_counts = 0;
 int sock_counts = 0;
 int thread_count = 0;
 pthread_t threads[200];
-void handle_command(struct Message msg)
+void handle_command(struct Message msg, int sock)
 {
+    write_console_log("Command received from ", 2, msg.from, msg.command);
     if (strcmp(msg.command, "INIT") == 0)
     {
 
         strcpy(clients[client_counts].name, msg.message);
-        // clients[client_counts].sockid =
+        clients[client_counts].sockid = atoi(msg.from);
+        client_counts++;
     }
     else if (strcmp(msg.command, "SNTO") == 0)
     {
+        struct Client *to = NULL, *from = NULL;
+        for (int i = 0; i < client_counts; i++)
+        {
+            if (strcmp(msg.to, clients[i].name) == 0)
+            {
+                to = &clients[i];
+            }
+            if (strcmp(msg.from, clients[i].name) == 0)
+            {
+                from = &clients[i];
+            }
+        }
+        if (to != NULL && from != NULL)
+        {
+            char res_msg[200];
+            memset(res_msg, '\0', 200);
+            strcpy(res_msg, "RCFM#");
+            strcat(res_msg, msg.from);
+            strcat(res_msg, ": ");
+            strcat(res_msg, msg.message);
+            if (send(to->sockid, res_msg, 200, 0) < 0)
+            {
+                write_console_log("failed to receive message", 0);
+                return;
+            }
+        }
     }
     else if (strcmp(msg.command, "RCFM") == 0)
     {
     }
     else if (strcmp(msg.command, "RQLS") == 0)
     {
+        char lst_clients[200];
+        memset(lst_clients, '\0', 200);
+        strcpy(lst_clients, "RACK#");
+        strcat(lst_clients, "ID\tName\n");
+        for (int i = 0; i < client_counts; i++)
+        {
+            char sId[10];
+            memset(sId, '\0', 10);
+            sprintf(sId, "%d", i + 1);
+            strcat(lst_clients, sId);
+            strcat(lst_clients, "\t");
+            strcat(lst_clients, clients[i].name);
+            strcat(lst_clients, "\n");
+        }
+        if (send(sock, lst_clients, 200, 0) < 0)
+        {
+            write_console_log("failed to receive message", 0);
+            return;
+        }
     }
     else if (strcmp(msg.command, "RACK") == 0)
     {
@@ -86,7 +133,7 @@ void *handle_client(void *client_sock)
                 c++;
                 token = strtok(NULL, s);
             }
-            handle_command(msg);
+            handle_command(msg, sock);
         }
     } while (strcmp(message, "bye\n") != 0 && strcmp(client_message, "") != 0);
 

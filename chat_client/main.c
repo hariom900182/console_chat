@@ -14,10 +14,15 @@ char client_message[200] = {0};
 char message[100] = {0};
 char name[50];
 char sock_str[25];
+char selected_user[20];
+short is_receive_mode = 0;
+char *msg_buffer[100][200];
+int buffer_count = 0;
 void handle_sigint(int sig);
 void render_menu();
 void receive_mode();
-
+void handle_server_response(char *msg);
+void output_msg(char *msg);
 int main()
 {
 
@@ -39,7 +44,7 @@ int main()
     memset(message, '\0', sizeof message);
     // send name to server
     sprintf(sock_str, "%d", sock_fd);
-    strcpy(message, "init#");
+    strcpy(message, "INIT#");
     strcat(message, sock_str);
     strcat(message, "#to#");
     // strcpy(message, "init#from#to#");
@@ -60,7 +65,8 @@ int main()
             write_console_log("failed to receive message ok", 0);
             return 1;
         }
-        printf("client msg: %s", client_message);
+        // printf("%s", client_message);
+        handle_server_response(client_message);
 
     } while (strcmp(client_message, "bye\n") != 0);
     //  close(sock_fd);
@@ -80,6 +86,7 @@ void render_menu()
         printf("# 1. Press 1 for exit.                                    #\n");
         printf("# 2. Press 2 for send message to selected user.           #\n");
         printf("# 3. Press 3 for go to message receive mode               #\n");
+        printf("# 4. Press 4 for list of all connected clients            #\n");
         printf("###########################################################\n");
         printf(":> ");
         scanf("%d", &choice);
@@ -115,10 +122,25 @@ void render_menu()
             // signal(SIGINT, handle_sigint);
             receive_mode();
             break;
+        case 4:
+            memset(message, '\0', 100);
+            sprintf(sock_str, "%d", sock_fd);
+            strcpy(message, "RQLS#");
+            strcat(message, sock_str);
+            strcat(message, "#to#");
+            // strcpy(message, "init#from#to#");
+            strcat(message, "");
+            if (send(sock_fd, message, strlen(message), 0) < 0)
+            {
+                write_console_log("failed to send message", 0);
+                return;
+            }
+            receive_mode();
+            break;
         default:
             break;
         }
-    } while (choice < 1 || choice > 3);
+    } while (choice < 1 || choice > 4);
 }
 
 void handle_sigint(int sig)
@@ -131,6 +153,53 @@ void handle_sigint(int sig)
 
 void receive_mode()
 {
-    system("clean");
+    system("clear");
+    is_receive_mode = 1;
     printf("\n***Message receive mode***\n");
+    if (buffer_count > 0)
+    {
+        printf("\n-------------UNREAD MESSGES---------------\n");
+        for (int i = 0; i < buffer_count; i++)
+        {
+            output_msg(*msg_buffer[i]);
+        }
+        printf("\n-------------UNREAD MESSGES END---------------\n");
+        buffer_count = 0;
+    }
+}
+void handle_server_response(char *msg)
+{
+    if (is_receive_mode == 0)
+    {
+        strcpy(*msg_buffer[buffer_count++], msg);
+    }
+    else
+    {
+        output_msg(client_message);
+    }
+}
+
+void output_msg(char *msg)
+{
+    char s[2] = "#";
+    char *token = strtok(msg, s);
+    int c = 0;
+    char cmd[5];
+    char cmsg[200];
+    memset(cmd, '\0', 5);
+    memset(cmsg, '\0', 200);
+    while (token != NULL)
+    {
+        if (c == 0)
+        {
+            strcpy(cmd, token);
+        }
+        else
+        {
+            strcpy(cmsg, token);
+        }
+        c++;
+        token = strtok(NULL, s);
+    }
+    printf("%s", cmsg);
 }
