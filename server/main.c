@@ -19,12 +19,12 @@ int thread_count = 0;
 pthread_t threads[200];
 void handle_command(struct Message msg, int sock)
 {
-    write_console_log("Command received from ", 2, msg.from, msg.command);
+    write_console_log("Command received from ", 7, msg.command, ":", msg.from, "->", msg.to, "=", msg.message);
     if (strcmp(msg.command, "INIT") == 0)
     {
 
         strcpy(clients[client_counts].name, msg.message);
-        clients[client_counts].sockid = atoi(msg.from);
+        clients[client_counts].sockid = sock;
         client_counts++;
     }
     else if (strcmp(msg.command, "SNTO") == 0)
@@ -106,6 +106,8 @@ void *handle_client(void *client_sock)
             write_console_log("failed to receive message", 0);
             return NULL;
         }
+        write_console_log("Raw msg: ", 1, client_message);
+
         if (strcmp(client_message, "") != 0)
         {
             const char s[2] = "#";

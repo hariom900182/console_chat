@@ -23,6 +23,7 @@ void render_menu();
 void receive_mode();
 void handle_server_response(char *msg);
 void output_msg(char *msg);
+
 int main()
 {
 
@@ -30,6 +31,7 @@ int main()
     printf("*******************PROCESS(%d)*****************\n", getpid());
     printf("Enter your name: ");
     fgets(name, 20, stdin);
+    name[strlen(name) - 1] = '\0';
     signal(SIGINT, handle_sigint);
     write_console_log("Creating socket...", 0);
     sock_fd = create_socket();
@@ -55,6 +57,7 @@ int main()
         write_console_log("failed to send message", 0);
         return 1;
     }
+    printf("\n***Message receive mode***\n");
     do
     {
 
@@ -88,7 +91,7 @@ void render_menu()
         printf("# 3. Press 3 for go to message receive mode               #\n");
         printf("# 4. Press 4 for list of all connected clients            #\n");
         printf("###########################################################\n");
-        printf(":> ");
+        printf(":%s> ", selected_user);
         scanf("%d", &choice);
         switch (choice)
         {
@@ -97,25 +100,36 @@ void render_menu()
             exit(EXIT_SUCCESS);
             break;
         case 2:
-
-            memset(message, '\0', 100);
-
-            printf("Enter message to send: ");
-
-            fgets(message, 100, stdin);
-            while ((getchar()) != '\n')
-                ;
-            char msgptr[100];
-            strcpy(msgptr, "sendto#from#to#");
-            strcat(msgptr, message);
-            printf("Message to send: %s\n", msgptr);
-            if (send(sock_fd, msgptr, strlen(msgptr), 0) < 0)
+            if (strlen(selected_user) > 0)
             {
-                write_console_log("failed to send message", 0);
-                return;
+                memset(message, '\0', 100);
+
+                printf("Enter message to send: ");
+                while ((getchar()) != '\n')
+                    ;
+                fgets(message, 100, stdin);
+
+                char msgptr[100];
+                strcpy(msgptr, "SNTO#");
+                strcat(msgptr, name);
+                strcat(msgptr, "#");
+                strcat(msgptr, selected_user);
+                strcat(msgptr, "#");
+                strcat(msgptr, message);
+
+                if (send(sock_fd, msgptr, strlen(msgptr), 0) < 0)
+                {
+                    write_console_log("failed to send message", 0);
+                    return;
+                }
+                receive_mode();
+            }
+            else
+            {
+                write_console_log("Please select user first then try again", 0);
+                choice = 0;
             }
 
-            // receive_mode();
             //  choice = 0;
             break;
         case 3:
@@ -169,14 +183,14 @@ void receive_mode()
 }
 void handle_server_response(char *msg)
 {
-    if (is_receive_mode == 0)
-    {
-        strcpy(*msg_buffer[buffer_count++], msg);
-    }
-    else
-    {
-        output_msg(client_message);
-    }
+    // if (is_receive_mode == 0)
+    // {
+    //     strcpy(*msg_buffer[buffer_count++], msg);
+    // }
+    // else
+    //{
+    output_msg(client_message);
+    //}
 }
 
 void output_msg(char *msg)
@@ -202,4 +216,22 @@ void output_msg(char *msg)
         token = strtok(NULL, s);
     }
     printf("%s", cmsg);
+    if (strcmp(cmd, "RACK") == 0)
+    {
+        char cU;
+        while ((getchar()) != '\n')
+            ;
+        printf("Do you want to select user(Y/N): ");
+        scanf("%c", &cU);
+        if (cU == 'Y' || cU == 'y')
+        {
+            printf("Enter name: ");
+            while ((getchar()) != '\n')
+                ;
+            fgets(selected_user, 20, stdin);
+            selected_user[strlen(selected_user) - 1] = '\0';
+        }
+        receive_mode();
+    }
+    //
 }
