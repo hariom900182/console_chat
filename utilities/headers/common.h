@@ -10,6 +10,7 @@
 // Clients structure
 struct Client
 {
+    int id;
     char name[25];
     int sockid;
 };

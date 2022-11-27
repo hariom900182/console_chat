@@ -16,8 +16,8 @@ char message[100] = {0};
 char name[50];
 char sock_str[25];
 char selected_user[20];
-short is_receive_mode = 0;
-char *msg_buffer[100][200];
+short is_receive_mode = 1;
+char msg_buffer[100][200] = {0};
 int buffer_count = 0;
 void handle_sigint(int sig);
 void render_menu();
@@ -85,6 +85,7 @@ void render_menu()
     // signal(SIGINT, handle_sigint);
     char message[100];
     int choice = 0;
+    is_receive_mode = 0;
     do
     {
         printf("###########################################################\n");
@@ -179,7 +180,7 @@ void receive_mode()
         printf("\n-------------UNREAD MESSGES---------------\n");
         for (int i = 0; i < buffer_count; i++)
         {
-            output_msg(*msg_buffer[i]);
+            output_msg(msg_buffer[i]);
         }
         printf("\n-------------UNREAD MESSGES END---------------\n");
         buffer_count = 0;
@@ -187,14 +188,14 @@ void receive_mode()
 }
 void handle_server_response(char *msg)
 {
-    // if (is_receive_mode == 0)
-    // {
-    //     strcpy(*msg_buffer[buffer_count++], msg);
-    // }
-    // else
-    //{
-    output_msg(client_message);
-    //}
+    if (is_receive_mode == 0)
+    {
+        strcpy(msg_buffer[buffer_count++], msg);
+    }
+    else
+    {
+        output_msg(client_message);
+    }
 }
 
 void output_msg(char *msg)
