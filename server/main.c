@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <headers/common.h>
+#include <headers/constants.h>
 #include <string.h>
 #include <pthread.h>
 
@@ -20,14 +21,14 @@ pthread_t threads[200];
 void handle_command(struct Message msg, int sock)
 {
     write_console_log("Command received from ", 7, msg.command, ":", msg.from, "->", msg.to, "=", msg.message);
-    if (strcmp(msg.command, "INIT") == 0)
+    if (strcmp(msg.command, COMMAND_INIT) == 0)
     {
 
         strcpy(clients[client_counts].name, msg.message);
         clients[client_counts].sockid = sock;
         client_counts++;
     }
-    else if (strcmp(msg.command, "SNTO") == 0)
+    else if (strcmp(msg.command, COMMAND_SNTO) == 0)
     {
         struct Client *to = NULL, *from = NULL;
         for (int i = 0; i < client_counts; i++)
@@ -45,7 +46,8 @@ void handle_command(struct Message msg, int sock)
         {
             char res_msg[200];
             memset(res_msg, '\0', 200);
-            strcpy(res_msg, "RCFM#");
+            strcpy(res_msg, COMMAND_RCFM);
+            strcat(res_msg, "#");
             strcat(res_msg, msg.from);
             strcat(res_msg, ": ");
             strcat(res_msg, msg.message);
@@ -56,14 +58,12 @@ void handle_command(struct Message msg, int sock)
             }
         }
     }
-    else if (strcmp(msg.command, "RCFM") == 0)
-    {
-    }
-    else if (strcmp(msg.command, "RQLS") == 0)
+    else if (strcmp(msg.command, COMMAND_RQLS) == 0)
     {
         char lst_clients[200];
         memset(lst_clients, '\0', 200);
-        strcpy(lst_clients, "RACK#");
+        strcpy(lst_clients, COMMAND_RACK);
+        strcat(lst_clients, "#");
         strcat(lst_clients, "ID\tName\n");
         for (int i = 0; i < client_counts; i++)
         {
@@ -81,11 +81,9 @@ void handle_command(struct Message msg, int sock)
             return;
         }
     }
-    else if (strcmp(msg.command, "RACK") == 0)
+    else if (strcmp(msg.command, COMMAND_SYST) == 0)
     {
-    }
-    else if (strcmp(msg.command, "SYST") == 0)
-    {
+        // to be implemented
     }
     else
     {
@@ -137,7 +135,7 @@ void *handle_client(void *client_sock)
             }
             handle_command(msg, sock);
         }
-    } while (strcmp(message, "bye\n") != 0 && strcmp(client_message, "") != 0);
+    } while (strcmp(client_message, "") != 0);
 
     close(sock);
     // sleep(1);

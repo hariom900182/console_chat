@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <headers/common.h>
+#include <headers/constants.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -46,7 +47,8 @@ int main()
     memset(message, '\0', sizeof message);
     // send name to server
     sprintf(sock_str, "%d", sock_fd);
-    strcpy(message, "INIT#");
+    strcpy(message, COMMAND_INIT);
+    strcat(message, "#");
     strcat(message, sock_str);
     strcat(message, "#to#");
     // strcpy(message, "init#from#to#");
@@ -71,9 +73,9 @@ int main()
         // printf("%s", client_message);
         handle_server_response(client_message);
 
-    } while (strcmp(client_message, "bye\n") != 0);
-    //  close(sock_fd);
-    //  sleep(1);
+    } while (strcmp(client_message, "") != 0);
+    // close(sock_fd);
+    //   sleep(1);
     return 0;
 }
 
@@ -110,7 +112,8 @@ void render_menu()
                 fgets(message, 100, stdin);
 
                 char msgptr[100];
-                strcpy(msgptr, "SNTO#");
+                strcpy(msgptr, COMMAND_SNTO);
+                strcat(msgptr, "#");
                 strcat(msgptr, name);
                 strcat(msgptr, "#");
                 strcat(msgptr, selected_user);
@@ -139,7 +142,8 @@ void render_menu()
         case 4:
             memset(message, '\0', 100);
             sprintf(sock_str, "%d", sock_fd);
-            strcpy(message, "RQLS#");
+            strcpy(message, COMMAND_RQLS);
+            strcat(message, "#");
             strcat(message, sock_str);
             strcat(message, "#to#");
             // strcpy(message, "init#from#to#");
@@ -216,11 +220,10 @@ void output_msg(char *msg)
         token = strtok(NULL, s);
     }
     printf("%s", cmsg);
-    if (strcmp(cmd, "RACK") == 0)
+    if (strcmp(cmd, COMMAND_RACK) == 0)
     {
         char cU;
-        while ((getchar()) != '\n')
-            ;
+        clear_stream();
         printf("Do you want to select user(Y/N): ");
         scanf("%c", &cU);
         if (cU == 'Y' || cU == 'y')

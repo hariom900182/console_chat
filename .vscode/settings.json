@@ -6,6 +6,7 @@
     "signal.h": "c",
     "types.h": "c",
     "socket.h": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "constants.h": "c"
   }
 }

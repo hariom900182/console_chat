@@ -40,4 +40,10 @@ int bind_socket(int *socketfd, struct sockaddr_in remote);
 // connect to socket
 int connect_socket(int *socketfd, struct sockaddr_in remote);
 
+// handle socket command
+void handle_command(struct Message msg, int sock);
+
+// clear input stream
+void clear_stream();
+
 #endif

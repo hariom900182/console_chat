@@ -85,3 +85,9 @@ int connect_socket(int *socketfd, struct sockaddr_in remote)
     }
     return retval;
 }
+
+void clear_stream()
+{
+    while ((getchar()) != '\n')
+        ;
+}
